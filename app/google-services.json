@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "478221795958",
+    "project_id": "tourmate-41a29",
+    "storage_bucket": "tourmate-41a29.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:478221795958:android:3d901db02368e8cba31557",
+        "android_client_info": {
+          "package_name": "com.example.tourmate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCvtXKz9dF7NPv6gaVAUpJ0lL8sJclkqsk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
