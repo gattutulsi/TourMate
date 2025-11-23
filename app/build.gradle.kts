@@ -47,6 +47,12 @@ android {
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.15"
     }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
@@ -59,7 +65,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.6")
     implementation("androidx.activity:activity-compose:1.9.3")
 
-    // Jetpack Compose (BOM ensures version alignment)
+    // Jetpack Compose BOM
     implementation(platform("androidx.compose:compose-bom:2024.10.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -69,7 +75,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
-    // Navigation for Compose
+    // Navigation Compose
     implementation("androidx.navigation:navigation-compose:2.8.3")
 
     // Room (Database)
@@ -91,13 +97,13 @@ dependencies {
     implementation("com.google.android.gms:play-services-maps:18.2.0")
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
-    // Coil (image loading)
+    // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.5.0")
 
-    // WorkManager (background tasks)
+    // WorkManager
     implementation("androidx.work:work-runtime-ktx:2.8.0")
 
-    // Core library desugaring (for java.time support on API < 26)
+    // Core library desugaring (for Java 17 features)
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
     // Testing
@@ -105,5 +111,4 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-
 }
