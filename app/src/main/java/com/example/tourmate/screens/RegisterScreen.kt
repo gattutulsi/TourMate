@@ -2,6 +2,8 @@ package com.example.tourmate.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -15,9 +17,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.imePadding
 import androidx.navigation.NavController
 import com.example.tourmate.AuthViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
     var fullName by remember { mutableStateOf("") }
@@ -29,155 +33,185 @@ fun RegisterScreen(navController: NavController, viewModel: AuthViewModel) {
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    listOf(Color(0xFFEEF3FF), Color.White)
+    val scrollState = rememberScrollState()
+
+    Scaffold(
+        //Top Bar
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "TourMate",
+                        color = Color.White,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = Color(0xFF00897B)
                 )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        // Card container
-        Card(
+            )
+        }
+    ) { padding ->
+        Column(
             modifier = Modifier
-                .fillMaxWidth(0.9f)
-                .wrapContentHeight(),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
-            shape = RoundedCornerShape(16.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(scrollState)
+                .imePadding()
+                .background(
+                    brush = Brush.verticalGradient(
+                        listOf(Color(0xFFE0F2F1), Color.White)
+                    )
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Column(
+            // Card
+            Card(
                 modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .fillMaxWidth(0.9f)
+                    .wrapContentHeight()
+                    .padding(top = 40.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(20.dp),
+                elevation = CardDefaults.cardElevation(12.dp)
             ) {
-                // Title
-                Text(
-                    text = "Sign Up",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color(0xFF1E3A8A),
-                    modifier = Modifier.padding(bottom = 20.dp)
-                )
-
-                // Full Name
-                OutlinedTextField(
-                    value = fullName,
-                    onValueChange = { fullName = it },
-                    label = { Text("Full Name") },
-                    singleLine = true,
+                Column(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(10.dp)
-                )
-
-                // Email
-                OutlinedTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    label = { Text("Email") },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(10.dp)
-                )
-
-                // Password
-                OutlinedTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    label = { Text("Password") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 16.dp),
-                    shape = RoundedCornerShape(10.dp)
-                )
-
-                // Confirm Password
-                OutlinedTextField(
-                    value = confirmPassword,
-                    onValueChange = { confirmPassword = it },
-                    label = { Text("Confirm Password") },
-                    visualTransformation = PasswordVisualTransformation(),
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 24.dp),
-                    shape = RoundedCornerShape(10.dp)
-                )
-
-                // Register Button
-                Button(
-                    onClick = {
-                        when {
-                            email.isBlank() || password.isBlank() -> {
-                                localError = "Email and Password are required"
-                            }
-                            password != confirmPassword -> {
-                                localError = "Passwords do not match"
-                            }
-                            else -> {
-                                localError = ""
-                                viewModel.register(email, password, navController)
-                            }
-                        }
-                    },
-                    enabled = !isLoading,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2563EB),
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(10.dp),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp)
+                        .padding(32.dp)
+                        .fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Title
                     Text(
-                        text = if (isLoading) "Registering..." else "Register",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.SemiBold
+                        text = "Sign Up",
+                        fontSize = 26.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF00897B),
+                        modifier = Modifier.padding(bottom = 24.dp)
                     )
-                }
 
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Already have an account? ",
-                        fontSize = 14.sp,
-                        color = Color.Gray
+                    // Full Name
+                    OutlinedTextField(
+                        value = fullName,
+                        onValueChange = { fullName = it },
+                        label = { Text("Full Name") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(12.dp)
                     )
-                    TextButton(onClick = { navController.navigate("login") }) {
+
+                    // Email
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Password
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Password") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Confirm Password
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text("Confirm Password") },
+                        visualTransformation = PasswordVisualTransformation(),
+                        singleLine = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 24.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Register Button
+                    Button(
+                        onClick = {
+                            when {
+                                email.isBlank() || password.isBlank() -> {
+                                    localError = "Email and Password are required"
+                                }
+                                password != confirmPassword -> {
+                                    localError = "Passwords do not match"
+                                }
+                                else -> {
+                                    localError = ""
+                                    viewModel.register(email, password, navController)
+                                }
+                            }
+                        },
+                        enabled = !isLoading,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF00897B),
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(52.dp)
+                    ) {
                         Text(
-                            text = "Login",
-                            color = Color(0xFF2563EB),
-                            fontWeight = FontWeight.Bold,
+                            text = if (isLoading) "Registering..." else "Register",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    // Login link
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Already have account? ",
                             fontSize = 14.sp,
-                            textDecoration = TextDecoration.Underline
+                            color = Color.Gray
+                        )
+                        TextButton(onClick = { navController.navigate("login") }) {
+                            Text(
+                                text = "Login",
+                                color = Color(0xFF00897B),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                textDecoration = TextDecoration.Underline
+                            )
+                        }
+                    }
+
+                    // Error message
+                    if (localError.isNotEmpty() || errorMessage.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = localError.ifEmpty { errorMessage },
+                            color = MaterialTheme.colorScheme.error,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(horizontal = 16.dp)
                         )
                     }
                 }
-
-                // Error Message (Validation through Firebase)
-                if (localError.isNotEmpty() || errorMessage.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = localError.ifEmpty { errorMessage },
-                        color = MaterialTheme.colorScheme.error,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
             }
+
+            // Extra space at bottom
+            Spacer(modifier = Modifier.height(32.dp))
         }
     }
 }

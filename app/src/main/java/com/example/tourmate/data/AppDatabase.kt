@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.tourmate.repo.Tour
 
-// Define Room database with Tour entity
+// Room database with Tour entity
 @Database(entities = [Tour::class], version = 1, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
@@ -22,7 +22,8 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "tourmate_database"  // Database name
+                    // Database name
+                    "tourmate_database"
                 ).build()
                 INSTANCE = instance
                 instance

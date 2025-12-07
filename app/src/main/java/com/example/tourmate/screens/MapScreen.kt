@@ -20,6 +20,7 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import kotlinx.coroutines.Dispatchers
@@ -31,16 +32,13 @@ import java.util.*
 @Composable
 fun MapScreen(navController: NavController, tourNames: List<String>) {
     val context = LocalContext.current
-    val fallbackLatLng = LatLng(18.3274, 82.8777) // Default fallback location
-
-    val cameraPositionState = rememberCameraPositionState()
+    val fallbackLatLng = LatLng(18.3274, 82.8777)
 
     var currentLatLng by remember { mutableStateOf<LatLng?>(null) }
     var destinationLatLngList by remember { mutableStateOf<List<LatLng>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var locationPermissionGranted by remember { mutableStateOf(false) }
 
-    // Permission request launcher
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -48,7 +46,7 @@ fun MapScreen(navController: NavController, tourNames: List<String>) {
                 permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
     }
 
-    // Request location permission
+    // Request permissions
     LaunchedEffect(Unit) {
         val fine = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
         val coarse = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -65,28 +63,29 @@ fun MapScreen(navController: NavController, tourNames: List<String>) {
         }
     }
 
-    // Load tour destinations
+    val cameraPositionState = rememberCameraPositionState {
+        position = CameraPosition.fromLatLngZoom(fallbackLatLng, 10f)
+    }
+
+    // Load destinations & current location
     LaunchedEffect(locationPermissionGranted, tourNames) {
         if (locationPermissionGranted) {
             isLoading = true
             try {
                 val destinations = mutableListOf<LatLng>()
                 for (name in tourNames) {
-                    val loc = getLocationFromName(context, name)
-                    if (loc != null) destinations.add(loc)
+                    getLocationFromName(context, name)?.let { destinations.add(it) }
                 }
-                if (destinations.isEmpty()) {
-                    destinations.add(fallbackLatLng)
-                }
+                if (destinations.isEmpty()) destinations.add(fallbackLatLng)
 
                 val current = getCurrentLocation(context) ?: fallbackLatLng
 
                 destinationLatLngList = destinations
                 currentLatLng = current
 
-                // Move camera to 1st destination
+                // Move camera to first destination or current location
                 cameraPositionState.move(
-                    CameraUpdateFactory.newLatLngZoom(destinations.first(), 10f)
+                    CameraUpdateFactory.newLatLngZoom(destinations.firstOrNull() ?: current, 12f)
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -96,10 +95,8 @@ fun MapScreen(navController: NavController, tourNames: List<String>) {
         }
     }
 
-    // Scaffold layout with topappbar
     Scaffold(
         topBar = {
-            // Top bar with back
             TopAppBar(
                 title = { Text("Tour Route Map") },
                 navigationIcon = {
@@ -110,79 +107,56 @@ fun MapScreen(navController: NavController, tourNames: List<String>) {
             )
         }
     ) { padding ->
-        // Main column layout
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Display tour names
             Text(
                 text = "Tour Names: ${tourNames.joinToString()}",
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(16.dp)
             )
 
-            // Conditional content display
             when {
                 isLoading -> {
-                    Box(
-                        modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
-                    ) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                         CircularProgressIndicator()
                     }
                 }
-
                 !locationPermissionGranted -> {
-                    // Permission denied message
                     Text(
                         text = "Location permission is required to show the map.",
                         color = Color.Red,
                         modifier = Modifier.padding(16.dp)
                     )
                 }
-
                 else -> {
-                    // Show Google Map
                     GoogleMap(
                         modifier = Modifier.fillMaxSize(),
                         cameraPositionState = cameraPositionState,
-                        properties = MapProperties(isMyLocationEnabled = true)
+                        properties = MapProperties(isMyLocationEnabled = locationPermissionGranted)
                     ) {
-                        // Current user marker
+                        // User marker
                         currentLatLng?.let {
-                            Marker(
-                                state = MarkerState(position = it),
-                                title = "You are here"
-                            )
+                            Marker(state = MarkerState(position = it), title = "You are here")
                         }
-
                         // Destination markers
                         destinationLatLngList.forEachIndexed { index, latLng ->
                             Marker(
                                 state = MarkerState(position = latLng),
-                                title = tourNames.getOrNull(index) ?: "Destination",
-                                snippet = "Destination"
+                                title = tourNames.getOrNull(index) ?: "Destination"
                             )
                         }
-
-                        // line for route
+                        // Polyline between destinations
                         if (destinationLatLngList.size > 1) {
-                            Polyline(
-                                points = destinationLatLngList,
-                                color = Color.Blue,
-                                width = 6f
-                            )
+                            Polyline(points = destinationLatLngList, color = Color.Blue, width = 6f)
                         }
-
                         // Line from user to first destination
-                        if (currentLatLng != null && destinationLatLngList.isNotEmpty()) {
-                            Polyline(
-                                points = listOf(currentLatLng!!, destinationLatLngList.first()),
-                                color = Color.Green,
-                                width = 4f
-                            )
+                        currentLatLng?.let { current ->
+                            destinationLatLngList.firstOrNull()?.let { firstDest ->
+                                Polyline(points = listOf(current, firstDest), color = Color.Green, width = 4f)
+                            }
                         }
                     }
                 }
@@ -192,48 +166,30 @@ fun MapScreen(navController: NavController, tourNames: List<String>) {
 }
 
 // Geocode location name
-suspend fun getLocationFromName(context: Context, name: String): LatLng? {
-    return withContext(Dispatchers.IO) {
-        try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            val result = geocoder.getFromLocationName(name, 1)
-            result?.firstOrNull()?.let {
-                LatLng(it.latitude, it.longitude)
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
+suspend fun getLocationFromName(context: Context, name: String): LatLng? = withContext(Dispatchers.IO) {
+    try {
+        val geocoder = Geocoder(context, Locale.getDefault())
+        geocoder.getFromLocationName(name, 1)?.firstOrNull()?.let {
+            LatLng(it.latitude, it.longitude)
         }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }
 
-// Get user location
-suspend fun getCurrentLocation(context: Context): LatLng? {
-    return withContext(Dispatchers.IO) {
-        try {
-            val fineLocationGranted = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_FINE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
+// Get current location
+suspend fun getCurrentLocation(context: Context): LatLng? = withContext(Dispatchers.IO) {
+    try {
+        val fineGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        val coarseGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+        if (!fineGranted && !coarseGranted) return@withContext null
 
-            val coarseLocationGranted = ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            ) == PackageManager.PERMISSION_GRANTED
-
-            if (!fineLocationGranted && !coarseLocationGranted) {
-                return@withContext null
-            }
-
-            val client = LocationServices.getFusedLocationProviderClient(context)
-            val location = client.lastLocation.await()
-            location?.let { LatLng(it.latitude, it.longitude) }
-        } catch (e: SecurityException) {
-            e.printStackTrace()
-            null
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
-        }
+        val client = LocationServices.getFusedLocationProviderClient(context)
+        val location = client.lastLocation.await()
+        location?.let { LatLng(it.latitude, it.longitude) }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
 }

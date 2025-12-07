@@ -25,7 +25,7 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyDj6hyM_-hzTsuHLZUzw7jTepcTOXcqW8E" />
 
-        <!-- Main activity that launches when app starts -->
+        <!-- Main activity -->
         <activity
             android:name=".MainActivity"
             android:exported="true"

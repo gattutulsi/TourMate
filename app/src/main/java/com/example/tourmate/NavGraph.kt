@@ -1,7 +1,6 @@
 package com.example.tourmate
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -36,7 +35,11 @@ fun NavGraph(
 
         // Home Screen
         composable("home") {
-            HomeScreen(navController = navController, viewModel = tourViewModel)
+            HomeScreen(
+                navController = navController,
+                tourViewModel = tourViewModel,
+                authViewModel = authViewModel
+            )
         }
 
         // Add Tour Screen
@@ -71,6 +74,22 @@ fun NavGraph(
             }
 
             MapScreen(navController = navController, tourNames = tourNamesList)
+        }
+
+        // Notifications screen
+        composable("notifications") {
+            NotificationsScreen(navController)
+        }
+
+        // Tour detail screen
+        composable(
+            route = "tour_detail/{tourId}",
+            arguments = listOf(
+                navArgument("tourId") { type = NavType.IntType }
+            )
+        ) { backStackEntry ->
+            val tourId = backStackEntry.arguments?.getInt("tourId") ?: -1
+            TourDetailScreen(navController = navController, tourId = tourId, viewModel = tourViewModel)
         }
     }
 }

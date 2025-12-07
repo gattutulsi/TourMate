@@ -22,7 +22,7 @@ class TourViewModel(application: Application) : AndroidViewModel(application) {
     // Past Tours: tours with date before today
     val pastTours: Flow<List<Tour>> = allTours.map { tours ->
         val today: LocalDate = try {
-            LocalDate.now()  // Works on API 24+ with desugaring
+            LocalDate.now()
         } catch (e: Exception) {
             null
         } ?: return@map emptyList()

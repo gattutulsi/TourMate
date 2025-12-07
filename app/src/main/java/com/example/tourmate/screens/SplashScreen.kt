@@ -19,7 +19,7 @@ fun SplashScreen(
 ) {
     // Check login status when splash screen is displayed
     LaunchedEffect(key1 = true) {
-        // Optional: show splash for 2 seconds
+        // show splash for 2 seconds
         delay(2000)
         authViewModel.checkLoginStatus(navController)
     }

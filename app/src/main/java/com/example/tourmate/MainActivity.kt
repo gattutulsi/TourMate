@@ -13,8 +13,8 @@ import com.example.tourmate.ui.theme.TourMateTheme
 class MainActivity : ComponentActivity() {
 
     // Shared ViewModels
-    private val tourViewModel by viewModels<TourViewModel>()
-    private val authViewModel by viewModels<AuthViewModel>()
+    private val tourViewModel by viewModels<TourViewModel>() // Tour data
+    private val authViewModel by viewModels<AuthViewModel>() // Authentication
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,11 +23,12 @@ class MainActivity : ComponentActivity() {
         setContent {
             TourMateTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
+                    // Navigation controller
                     val navController = rememberNavController()
                     NavGraph(
                         navController = navController,
                         tourViewModel = tourViewModel,
-                        authViewModel = authViewModel
+                        authViewModel = authViewModel,
                     )
                 }
             }
